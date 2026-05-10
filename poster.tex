@@ -1,15 +1,16 @@
 % !TEX program = XeLaTeX
 %----------------------------------------------------------------------------------------
-%	PACKAGES
+% PACKAGES
 %----------------------------------------------------------------------------------------
 \documentclass[hyperref={pdfpagelabels=false}]{beamer}
-\usepackage[orientation=portrait,size=a0,scale=1.4]{beamerposter}
+\usepackage[orientation=portrait,size=a0,scale=1.15]{beamerposter}
 \usepackage[font={small}]{caption}
 \usepackage[english]{babel}
-\usepackage{fontspec, xcolor, tikz, algorithm, algpseudocode, csvsimple, tabularx, rotating, wrapfig}
+\usepackage{amsmath, booktabs, fontspec, graphicx, xcolor, tikz, tabularx}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric}
 
 %----------------------------------------------------------------------------------------
-%	DOCUMENT CONFIGURATIONS
+% DOCUMENT CONFIGURATIONS
 %----------------------------------------------------------------------------------------
 \usetheme{NTNU}
 
@@ -38,190 +39,227 @@
 \setlength\origleftmargini\leftmargini
 \setbeamertemplate{itemize/enumerate body begin}{\setlength{\leftmargini}{1.2em}}
 
-\definecolor{mydark}{HTML}{232834}
+\definecolor{ntnublue}{HTML}{00509E}
+\definecolor{resultgreen}{HTML}{00843D}
+\definecolor{warnred}{HTML}{C64632}
+\definecolor{softgray}{HTML}{EEF2F5}
+\definecolor{darkgray}{HTML}{232834}
+
+\newcommand{\keymetric}[3]{%
+  \begin{tikzpicture}
+    \node[
+      rounded corners=4pt,
+      draw=#1,
+      line width=1.2pt,
+      fill=#1!8,
+      inner sep=10pt,
+      text width=0.28\columnwidth,
+      align=center
+      
+    ] {\Large\textbf{#2}\\[0.3em]\normalsize #3};
+  \end{tikzpicture}%
+}
 
 %----------------------------------------------------------------------------------------
-%	TITLE SECTION
+% TITLE SECTION
 %----------------------------------------------------------------------------------------
-\listfiles
+\title{\huge{Real-Time Impact Point Prediction of Suborbital Rockets\\Using Kalman Filtering}}
 
-\title{\Huge{Feasibility Study of Social Network Analysis on Loosely Structured Communication Networks}}
+\author{Emil Killingberg Jensen, Kristoffer Gryte}
 
-\author{Jan William Johnsen and Katrin Franke}
-
-\institute{jan.w.johnsen@ieee.org and kyfranke@ieee.org}
+\institute{\normalsize\texttt{emilkj@stud.ntnu.no} \quad $|$ \quad \texttt{kristoffer.gryte@ntnu.no} \\[0.4em]
+Department of Engineering Cybernetics, NTNU}
 
 %----------------------------------------------------------------------------------------
 
 \begin{document}
 
-\addtobeamertemplate{block end}{}{\vspace*{1ex}} % White space under blocks
+\addtobeamertemplate{block end}{}{\vspace*{1ex}}
 
-\begin{frame}[fragile] % The whole poster is enclosed in one beamer frame
-
-%\vspace{0em}
-
+\begin{frame}[fragile]
 \begin{columns}[t]
 
 %----------------------------------------------------------------------------------------
-%	FIRST COLUMN
+% FIRST COLUMN
 %----------------------------------------------------------------------------------------
-\begin{column}{.052\textwidth}\end{column} % Empty spacer column
+\begin{column}{.052\textwidth}\end{column}
 
-\begin{column}{.45\textwidth} % The first column
+\begin{column}{.45\textwidth}
 
-%	HIGHLIGHTS
-%----------------------------------------------------------------------------------------
-\begin{block}{Highlights}
-  \begin{itemize}
-    \item Organised criminal groups become more active in the cyber domain, where they form online communities used as marketplaces for illegal material, products and services purchased by other criminals.
-    \item Trading of illegal goods drives an underground economy that facilitates almost any type of cyber crime. The challenge for law enforcement agencies is to know which individuals to focus their efforts on, in order to effectively disrupt the marketplaces.
-    \item Our article study the feasiability of using \textbf{social network analysis} on loosely structured communication networks with the goal of identifing central individuals who provide services to cyber criminals.
-  \end{itemize}
+\begin{block}{Motivation}
+  Rocket launch rates are rising. Recovering payloads and first stages using autonomous
+  recovery vehicles (ARVs) reduces cost, human exposure, and environmental footprint.
+  The challenge is knowing where the rocket will land \textit{before it gets there}.
+
+  \vspace{0.5em}
+  \textbf{Impact point prediction (IPP)} is the real-time estimate of the rocket's
+  landing location and uncertainty, updated continuously from onboard sensor data.
+  An ARV steers to this estimate.
+
+  \vspace{0.6em}
+  \begin{center}
+  \begin{tikzpicture}[
+    font=\small,
+    physbox/.style={rectangle, rounded corners=5pt, draw=darkgray, line width=1.2pt,
+                    fill=white, align=center, text width=5.0cm, minimum height=3.0cm},
+    algbox/.style={rectangle, rounded corners=5pt, draw=ntnublue, line width=1.6pt,
+                   fill=ntnublue!8, align=center, text width=3.0cm, minimum height=2.0cm},
+    ippbox/.style={algbox, draw=resultgreen, fill=resultgreen!8},
+    arrow/.style={-{Latex[length=4mm, width=3mm]}, line width=1.3pt, draw=darkgray},
+    datatag/.style={font=\scriptsize, align=center, rounded corners=3pt,
+                    fill=darkgray!8, draw=darkgray!35, line width=0.5pt,
+                    inner xsep=5pt, inner ysep=3pt},
+    navtag/.style={datatag, fill=ntnublue!10, draw=ntnublue!40},
+    ipptag/.style={datatag, fill=resultgreen!10, draw=resultgreen!40}
+  ]
+    % Softgray module background — drawn first so nodes render on top
+    \draw[rounded corners=8pt, draw=darkgray!50, line width=1.0pt, fill=softgray!60]
+      (-5.5cm, 3.6cm) rectangle (5.5cm, -3.6cm);
+    \node[font=\scriptsize\itshape, text=darkgray!70] at (0cm, 4.1cm)
+      {\textit{Onboard algorithm}};
+
+    % Algorithm nodes — spread apart to leave room for the nav state label between them
+    \node[algbox] (eskf) at (0cm,  2.2cm) {\textbf{ESKF}};
+    \node[ippbox] (ipp)  at (0cm, -2.2cm) {\textbf{IPP EKF}};
+
+    % Physical entities at mid-height (y=0)
+    \node[physbox] (rocket)  at (-12.5cm, 0) {\textbf{Rocket}};
+    \node[physbox] (vehicle) at ( 12.5cm, 0) {\textbf{ARV}};
+
+    % External arrows — straight horizontal at y=0
+    \draw[arrow] (rocket.east) -- (-5.5cm, 0)
+      node[midway, above=3pt, datatag] {sensor data};
+    \draw[arrow] (5.5cm, 0) -- (vehicle.west)
+      node[midway, above=3pt, ipptag] {impact point\\+ covariance};
+
+    % Internal arrow — nav state label centred in the gap between the two blocks
+    \draw[arrow] (eskf.south) -- (ipp.north);
+    \node[navtag, anchor=west] at (0.15cm, 0cm) {Navigation state\\and covariance};
+  \end{tikzpicture}
+  \end{center}
+
 \end{block}
 
+\begin{block}{System \& Method}
 
-%	METHODOLOGY
-%----------------------------------------------------------------------------------------
-\begin{block}{Case study methodology}
-  \begin{itemize}
-    \item Social network analysis studies social relationships through the use of network graphs. In these graphs, \textbf{vertices} are individual actors and \textbf{edges} are the relationships between them.
-    \item \textbf{Centrality measures} identify important and influential individuals in a network. These measures often differ in their evaluation of vertex importance.
-  \end{itemize}
+  \textbf{Navigation — Error-State Kalman Filter (ESKF)}
 
-  \begin{figure}[H]
-  	\begin{minipage}{0.48\columnwidth}
-  		\centering
-  		\includegraphics[width=0.99\columnwidth]{../pdf/degree_centrality}
-  		\caption{Highlighting largest degree centrality}
-  		\label{fig:degree_centrality}
-  	\end{minipage}
-  	~
-  	\begin{minipage}{0.48\columnwidth}
-  		\centering
-  		\includegraphics[width=0.99\columnwidth]{../pdf/betweenness_centrality}
-  		\caption{Highlighting largest betweenness centrality}
-  		\label{fig:betweenness_centrality}
-  	\end{minipage}
-  \end{figure}
+  \vspace{0.3em}
+  The ESKF maintains a continuous estimate of position, velocity, attitude, and sensor
+  biases. IMU measurements propagate the state at high rate. GNSS, barometer, and
+  magnetometer measurements then correct it via the error-state injection scheme~[3].
+  The filter outputs a full state vector \textit{and covariance} that are passed directly
+  as the initial condition for the IPP filter.
 
-  \begin{figure}[H]
-  	\begin{minipage}{0.48\columnwidth}
-  		\centering
-  		\includegraphics[width=0.99\columnwidth]{../pdf/closeness_centrality}
-  		\caption{Highlighting largest closeness centrality}
-  		\label{fig:closeness_centrality}
-  	\end{minipage}
-  	~
-  	\begin{minipage}{0.48\columnwidth}
-  		\centering
-  		\includegraphics[width=0.99\columnwidth]{../pdf/eigenvector_centrality}
-  		\caption{Highlighting largest eigenvector centrality}
-  		\label{fig:eigenvector_centrality}
-  	\end{minipage}
-  \end{figure}
-\end{block}
+  \vspace{0.8em}
+  \textbf{Impact Point Prediction — Cartesian EKF}
 
-%	CASE STUDY DESIGN
-%----------------------------------------------------------------------------------------
-\begin{block}{Case study and novel hacker forum dataset}
-  \begin{itemize}
-    \item A novel dataset from \textbf{Nulled.IO} was leaked on 12/05/2017. It is from an online forum for distributing cracked software and leaked credentials.
-    \item The database dump contains details for about 600 000 users, including around 800 000 private and 3.5 million public messages.
-    \item Two networks – modelled by \textbf{undirected graphs} – were created to model both private and public communciations.
-  \end{itemize}
-  \begin{figure}
-    \colorbox{mydark}{\includegraphics[scale=1.2]{figures/nulled.png}}
-    %\caption{Nulled.IO logo}
-    %\label{fig:Nulled.IO logo}
-  \end{figure}
-\end{block}
+  \vspace{0.3em}
+  The IPP filter propagates a Cartesian state
+  $\mathbf{x} = [\mathbf{p}^\top, \mathbf{v}^\top]^\top$ in NED coordinates forward
+  until altitude reaches sea level:
 
-\begin{block}{Centrality measures results}
-  \begin{table}[!ht]
-    \footnotesize
-    \caption{Top ten public centrality results}
-  	\label{tab:app_undirected_sna_results_top_10_public}
-    \begin{tabular}{| l | l || l | l || l | l || l | l |}
-  		\hline
-  		\textbf{ID} & \textbf{Degree} & \textbf{ID} & \textbf{Closeness} & \textbf{ID} & \textbf{Betweenness} & \textbf{ID} & \textbf{Eigenvector} \\ \hline
-  		\csvreader[head to column names,late after line=\\]{../data/sna_results_threads_10_threshold_1.csv}{}
-  		{\eidone & \degree & \eidtwo & \closeness & \eidthree & \betweenness & \eidfour & \eigenvector}
-  		\hline
-  	\end{tabular}
-  \end{table}
+  \vspace{0.2em}
+  \begin{center}
+  \begin{minipage}{0.97\columnwidth}
+  \begin{equation*}
+    \dot{\mathbf{p}} = \mathbf{v}, \qquad
+    \dot{\mathbf{v}} = \mathbf{g}
+      - K_D\,\mathbf{v}_a
+      + \mathbf{R}(\hat{\mathbf{q}})\,\mathbf{T}_b, \qquad
+    K_D = \frac{\rho\, C_D\, A\,\|\mathbf{v}_a\|}{2m}
+  \end{equation*}
+  \end{minipage}
+  \end{center}
+
+  \vspace{0.2em}
+  $\mathbf{v}_a$ airspeed vector, $\rho$ air density, $C_D$ drag coefficient, $A$ reference area, $m$ mass.
+  $\mathbf{R}(\hat{\mathbf{q}})$ rotates the body-frame thrust $\mathbf{T}_b$ to NED using the ESKF attitude quaternion $\hat{\mathbf{q}}$.
+
+  \vspace{0.3em}
+  The equations are propagated forward until the predicted altitude reaches sea level,
+  yielding a predicted impact point and propagated uncertainty ellipse updated in real time.
+
+  \vspace{0.8em}
+  \begin{tabularx}{0.97\columnwidth}{>{\bfseries}l X}
+    \toprule
+    Component & Key design choice \\
+    \midrule
+    ESKF & Fuses GNSS, barometer, and magnetometer \\
+    IPP  & Forward propagation of position and velocity using EKF equations \\
+    Interface & IPP re-initialised from ESKF state and covariance at each GNSS update \\
+    \bottomrule
+  \end{tabularx}
+
 \end{block}
 
 \end{column}
 
 %----------------------------------------------------------------------------------------
-%	SECOND COLUMN
+% SECOND COLUMN
 %----------------------------------------------------------------------------------------
-\begin{column}{.01\textwidth}\end{column} % Empty spacer column
+\begin{column}{.01\textwidth}\end{column}
 
-\begin{column}{.45\textwidth} % The second column
+\begin{column}{.45\textwidth}
 
-%	RESULTS
-%----------------------------------------------------------------------------------------
-\begin{exampleblock}{}
-  \begin{table}[!ht]
-  \footnotesize
-  	\caption{Top ten private centrality results}
-  	\label{tab:app_undirected_sna_results_top_10_private}
-  	\begin{tabular}{| l | l || l | l || l | l || l | l |}
-  	  \hline
-  	  \textbf{ID} & \textbf{Degree} & \textbf{ID} & \textbf{Closeness} & \textbf{ID} & \textbf{Betweenness} & \textbf{ID} & \textbf{Eigenvector} \\ \hline
-  	  \csvreader[head to column names,late after line=\\]{../data/sna_results_pm_10_threshold_1.csv}{}
-  	  {\eidone & \degree & \eidtwo & \closeness & \eidthree & \betweenness & \eidfour & \eigenvector}
-  	  \hline
-  	\end{tabular}
-  \end{table}
-\end{exampleblock}
+\begin{block}{Results: Real-Flight Validation}
+  % PLACEHOLDER — replace with geographic map figure once generated
+  % (predicted impact track converging to actual landing point)
+  The figure compares horizontal IPP error from a real Andøya student-rocket launch against
+  a representative simulated trajectory. The two are distinct flights — the comparison shows
+  that the error characteristics seen in simulation transfer to the real-flight setting.
 
-%	RESULTS
-%----------------------------------------------------------------------------------------
-\begin{block}{Network visualisation}
-  \begin{figure}[!ht]
-  	\includegraphics[width=0.65\textwidth]{figures/public_threads_network.png}
-  	\caption{Public threads}
-  	\label{fig:public_threads_visualisation}
-  \end{figure}
+  \vspace{0.4em}
+  \begin{center}
+    \includegraphics[width=0.95\columnwidth]{figures/sim_vs_real_ipp_error.pdf}
+  \end{center}
 
-  \begin{figure}[!ht]
-  	\includegraphics[width=0.65\textwidth]{figures/private_messages_network.png}
-  	\caption{Private messages}
-  	\label{fig:private_messages_visualisation}
-  \end{figure}
+  \vspace{0.3em}
+  During the powered phase ($t \lesssim 10$~s) the prediction carries high uncertainty due
+  to gyroscope saturation from peak spin rates. After motor burnout, the filter produces
+  stable predictions with low and well-bounded horizontal error throughout the full 80~s
+  descent to splashdown.
 \end{block}
 
-%	SUMMARY
-%----------------------------------------------------------------------------------------
-\begin{block}{Summary}
+
+\begin{block}{Challenges \& Outlook}
   \begin{itemize}
-    \item Centrality measures ranked administrators as more important than cyber criminals who provide illegal services to others. Focusing on disrupting server administrators is an inefficient approach addressing this problem, as their removal represents only a temporarily setback for prolific cyber criminal networks.
+    \item \textbf{Powered-phase limitation:} peak spin rate of ${\approx}$113~rad/s
+          exceeds the gyroscope range, saturating the IMU during boost.
+          A higher-range gyroscope and repositioning the IMU closer to the spin axis would address this.
+    \item \textbf{Wind and drag uncertainty:} real-time wind estimation and
+          in-flight drag identification remain open problems for operational use.
+    \item \textbf{Known mass and thrust:} the IPP model treats vehicle mass and thrust
+          as deterministic inputs. Propellant burn-off and thrust variations introduce
+          unmodelled uncertainty that limits pre-burnout accuracy; in-flight parameter
+          estimation would address this.
+    \item \textbf{Scaling to orbital recovery:} the ESKF--Cartesian architecture
+          requires only higher-grade inertial sensors and a longer propagation
+          horizon to support autonomous ship pre-positioning before first-stage
+          splashdown.
   \end{itemize}
-  \begin{figure}
-    \includegraphics[scale=1.4]{figures/theguardian.png}
-    %\caption{Screen capture of Guardian article}
-    %\label{fig:Guardian article}
-  \end{figure}
 \end{block}
 
-%	REFERENCES
-%----------------------------------------------------------------------------------------
-%\begin{block}{References}
-%\bibliographystyle{alpha}
-%\scriptsize{
-%  \bibliography{references}
-%}
-%\end{block}
+\begin{block}{References}
+  \small
+  \begin{tabular}{@{}r@{\hspace{0.5em}}p{0.87\columnwidth}@{}}
+    {[1]} & K.~Gryte et al.
+            \textit{Recovery of Rocket Payloads and First Stages Using Unmanned Vehicles.}
+            IEEE Aerospace Conference, 2025. \\[0.4em]
+    {[2]} & A.~Meta.
+            \textit{Impact Point Prediction of High-Power Rockets and Sounding Rockets.}
+            M.Sc.\ Thesis, NTNU, 2025. \\[0.4em]
+    {[3]} & E.~K.~Jensen.
+            \textit{Impact Point Prediction of High-Power Rockets and Sounding Rockets.}
+            M.Sc.\ Thesis, NTNU, 2026. \\
+  \end{tabular}
+\end{block}
 
-\end{column} % End of the second column
+\end{column}
 
-\begin{column}{.039\textwidth}\end{column} % Empty spacer column
+\begin{column}{.039\textwidth}\end{column}
 
-\end{columns} % End of all the columns in the poster
-
+\end{columns}
 \end{frame}
 
 \end{document}
