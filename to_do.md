@@ -14,3 +14,7 @@
 ## Thesis
 
 - [ ] **Update reference [3]** once the master's thesis is submitted and has a final title — it currently points to an unfinished draft.
+
+## Poster figures
+
+- [ ] **Render the geographic IPP track plot.** Data is already staged at `data/ipp_track.csv` and `data/ipp_track_meta.csv`. Run `pip install contextily` once, then `python scripts/plot_poster_ipp_track.py` produces `figures/poster_ipp_track.pdf` (rocket ground track + per-step predicted impacts coloured by flight time + actual splashdown bullseye, all on Esri satellite tiles). Then decide layout — likely replaces the 1×3 error figure in the Real-Flight Validation block.
