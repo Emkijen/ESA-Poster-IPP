@@ -203,37 +203,46 @@ Department of Engineering Cybernetics, NTNU}
 \begin{column}{.45\textwidth}
 
 \begin{block}{Results: Real-Flight Validation}
-  % PLACEHOLDER — replace with geographic map figure once generated
-  % (predicted impact track converging to actual landing point)
-  The figure compares horizontal IPP error from a real Andøya student-rocket launch against
-  a representative simulated trajectory. The two are distinct flights — the comparison shows
-  that the error characteristics seen in simulation transfer to the real-flight setting.
+  Andøya student-rocket flight (Mongoose~98), full ${\sim}80$\,s ballistic descent to
+  splashdown. The Cartesian IPP filter is run on real onboard sensor data alongside a
+  simulation reference with clean sensor inputs as a baseline.
 
   \vspace{0.4em}
   \begin{center}
-    \includegraphics[width=0.95\columnwidth]{figures/sim_vs_real_ipp_error.pdf}
+    \includegraphics[width=0.97\columnwidth]{figures/poster_ipp_error.pdf}
   \end{center}
 
   \vspace{0.3em}
-  During the powered phase ($t \lesssim 10$~s) the prediction carries high uncertainty due
-  to gyroscope saturation from peak spin rates. After motor burnout, the filter produces
-  stable predictions with low and well-bounded horizontal error throughout the full 80~s
-  descent to splashdown.
+  During the burn phase ($t \lesssim 10$\,s) the prediction is corrupted by a stack of
+  upstream effects, including gyroscope and accelerometer saturation under high spin,
+  vibration, GNSS error, and thrust/mass mismodelling. After burn-out the real-flight
+  error drops sharply and decays through to impact, settling above the simulation
+  reference baseline. Errors are reported against the GNSS reference rather than
+  absolute ground truth.
 \end{block}
 
 
 \begin{block}{Challenges \& Outlook}
+  \begin{minipage}[t]{0.50\columnwidth}
+    \vspace{0pt}
+    \includegraphics[width=\linewidth]{figures/poster_spin_rate.pdf}
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.46\columnwidth}
+    \vspace{0pt}
+    \textbf{Spin saturation.} The gyroscope saturates at $\pm 40$\,rad/s through burn.
+    The magnetometer recovers the true ${\approx}113$\,rad/s peak. Mitigations include
+    a higher-range IMU, IMU placement closer to the spin axis, and a lower-spin rocket.
+  \end{minipage}
+
+  \vspace{0.5em}
   \begin{itemize}
-    \item \textbf{Powered-phase limitation:} peak spin rate of ${\approx}$113~rad/s
-          exceeds the gyroscope range, saturating the IMU during boost.
-          A higher-range gyroscope and repositioning the IMU closer to the spin axis would address this.
-    \item \textbf{Wind and drag uncertainty:} real-time wind estimation and
+    \item \textbf{Wind and drag uncertainty.} Real-time wind estimation and
           in-flight drag identification remain open problems for operational use.
-    \item \textbf{Known mass and thrust:} the IPP model treats vehicle mass and thrust
+    \item \textbf{Known mass and thrust.} The IPP model treats vehicle mass and thrust
           as deterministic inputs. Propellant burn-off and thrust variations introduce
-          unmodelled uncertainty that limits pre-burnout accuracy; in-flight parameter
+          unmodelled uncertainty that limits pre-burnout accuracy. In-flight parameter
           estimation would address this.
-    \item \textbf{Scaling to orbital recovery:} the ESKF--Cartesian architecture
+    \item \textbf{Scaling to orbital recovery.} The ESKF and Cartesian architecture
           requires only higher-grade inertial sensors and a longer propagation
           horizon to support autonomous ship pre-positioning before first-stage
           splashdown.
@@ -250,7 +259,7 @@ Department of Engineering Cybernetics, NTNU}
             \textit{Impact Point Prediction of High-Power Rockets and Sounding Rockets.}
             M.Sc.\ Thesis, NTNU, 2025. \\[0.4em]
     {[3]} & E.~K.~Jensen.
-            \textit{Impact Point Prediction of High-Power Rockets and Sounding Rockets.}
+            \textit{Rocket science: Catch space rockets using unmanned vehicles.}
             M.Sc.\ Thesis, NTNU, 2026. \\
   \end{tabular}
 \end{block}

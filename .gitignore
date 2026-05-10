@@ -13,3 +13,8 @@
 *.blg
 *.bcf
 *.run.xml
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
