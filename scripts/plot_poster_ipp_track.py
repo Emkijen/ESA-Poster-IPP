@@ -22,7 +22,6 @@ from pathlib import Path
 import contextily as cx
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.lines import Line2D
 
 import poster_style as ps
 
@@ -32,8 +31,6 @@ META_CSV = ROOT / "data" / "ipp_track_meta.csv"
 OUT_PDF = ROOT / "figures" / "poster_ipp_track.pdf"
 
 M_PER_DEG_LAT = 111_320.0
-
-
 def load_meta(path):
     meta = {}
     arr = np.genfromtxt(path, delimiter=",", skip_header=1, dtype=str)
@@ -68,67 +65,37 @@ def main():
 
     fig, ax = plt.subplots(figsize=(ps.COLUMN_WIDTH_IN, 9.5))
 
-    # Rocket ground track — thick warn-red line
-    ax.plot(rocket_lon, rocket_lat, color=ps.WARN_RED, lw=ps.LW_PRIMARY,
-            label="Rocket ground track", zorder=3)
+    # Rocket ground track
+    ax.plot(rocket_lon, rocket_lat, color=ps.WARN_RED, lw=ps.LW_PRIMARY, zorder=3)
 
-    # IPP predictions — coloured by flight time so the convergence reads as a gradient
-    sc = ax.scatter(pred_lon, pred_lat, c=t, cmap="viridis", s=70,
-                    edgecolor="white", linewidth=0.6, zorder=4,
-                    label="Predicted impact (per step)")
+    # IPP predictions coloured by flight time — white edge keeps dots visible over ocean
+    sc = ax.scatter(pred_lon, pred_lat, c=t, cmap="plasma", s=90,
+                    alpha=0.9, edgecolors="white", linewidths=0.6, zorder=4)
 
-    # Actual splashdown — bullseye
-    ax.scatter([impact_lon], [impact_lat], marker="*", s=600,
-               color=ps.RESULT_GREEN, edgecolor="white", linewidth=1.4,
-               zorder=5, label="Actual splashdown")
+    # Actual impact — crosshair
+    ax.scatter([impact_lon], [impact_lat], marker="+", s=250, color="white",
+               linewidths=1.5, zorder=6)
+    ax.scatter([impact_lon], [impact_lat], marker="+", s=250, color=ps.DARK_GRAY,
+               linewidths=3.0, zorder=5)
 
-    # Launch site
-    ax.scatter([lon0], [lat0], marker="^", s=300,
-               color=ps.NTNU_BLUE, edgecolor="white", linewidth=1.4,
-               zorder=5, label="Launch site")
-
-    # Frame the area with a small margin in geo coords
+    # Axis limits
     all_lats = np.concatenate([rocket_lat, pred_lat, [impact_lat, lat0]])
     all_lons = np.concatenate([rocket_lon, pred_lon, [impact_lon, lon0]])
-    pad_lat = 0.02
-    pad_lon = 0.04
+    pad_lat = 0.015
+    pad_lon = 0.03
     ax.set_xlim(all_lons.min() - pad_lon, all_lons.max() + pad_lon)
     ax.set_ylim(all_lats.min() - pad_lat, all_lats.max() + pad_lat)
     ax.set_aspect(1.0 / np.cos(np.radians(lat0)))
 
-    # Satellite basemap (Esri World Imagery — no API key)
+    # Remove frame, ticks, labels — it's a map
+    ax.axis("off")
+
     cx.add_basemap(ax, source=cx.providers.Esri.WorldImagery,
-                   crs="EPSG:4326", zoom="auto")
+                   crs="EPSG:4326", zoom=13, attribution=False)
 
-    # Time colorbar
-    cbar = fig.colorbar(sc, ax=ax, fraction=0.035, pad=0.02)
-    cbar.set_label("Flight time [s]")
-
-    ax.set_xlabel("Longitude [deg]")
-    ax.set_ylabel("Latitude [deg]")
-
-    # Single legend above the map
-    handles = [
-        Line2D([0], [0], color=ps.WARN_RED, lw=ps.LW_PRIMARY,
-               label="Rocket ground track"),
-        Line2D([0], [0], marker="o", color="none", markerfacecolor="#3b528b",
-               markersize=10, label="Predicted impact (per step)"),
-        Line2D([0], [0], marker="*", color="none", markerfacecolor=ps.RESULT_GREEN,
-               markeredgecolor="white", markersize=18, label="Actual splashdown"),
-        Line2D([0], [0], marker="^", color="none", markerfacecolor=ps.NTNU_BLUE,
-               markeredgecolor="white", markersize=14, label="Launch site"),
-    ]
-    fig.legend(handles=handles, loc="upper center", ncol=4,
-               bbox_to_anchor=(0.5, 1.02), frameon=False,
-               fontsize=ps.SIZE_LEGEND)
-
-    fig.tight_layout(rect=(0, 0, 1, 0.95))
     OUT_PDF.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(OUT_PDF)
+    fig.savefig(OUT_PDF, bbox_inches="tight", dpi=300)
     print(f"saved {OUT_PDF}")
-    print(f"  launch ref:   ({lat0:.4f}, {lon0:.4f})")
-    print(f"  rocket NED bbox: N=[{rocket_n.min():.0f}, {rocket_n.max():.0f}]  "
-          f"E=[{rocket_e.min():.0f}, {rocket_e.max():.0f}]")
     impact_dist_km = np.hypot(impact_n, impact_e) / 1000
     print(f"  impact at {impact_dist_km:.1f} km from launch ref")
 

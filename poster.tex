@@ -86,10 +86,12 @@ Department of Engineering Cybernetics, NTNU}
 
 \begin{column}{.45\textwidth}
 
-\begin{block}{Motivation}
-  Rocket launch rates are rising. Recovering payloads and first stages using autonomous
-  recovery vehicles (ARVs) reduces cost, human exposure, and environmental footprint.
-  The challenge is knowing where the rocket will land \textit{before it gets there}.
+\begin{block}{Research Objective}
+  Rocket launch rates are rising, making sustainable recovery of payloads and first
+  stages increasingly important. Autonomous recovery vehicles (ARVs) address this by
+  reducing cost, human exposure, and environmental footprint. This requires solving
+  two coupled problems. The rocket's landing location must be predicted in real time
+  so the ARV can be guided to that location. 
 
   \vspace{0.5em}
   \textbf{Impact point prediction (IPP)} is the real-time estimate of the rocket's
@@ -98,6 +100,7 @@ Department of Engineering Cybernetics, NTNU}
 
   \vspace{0.6em}
   \begin{center}
+  \scalebox{1.2}{%
   \begin{tikzpicture}[
     font=\small,
     physbox/.style={rectangle, rounded corners=5pt, draw=darkgray, line width=1.2pt,
@@ -135,12 +138,12 @@ Department of Engineering Cybernetics, NTNU}
     % Internal arrow — nav state label centred in the gap between the two blocks
     \draw[arrow] (eskf.south) -- (ipp.north);
     \node[navtag, anchor=west] at (0.15cm, 0cm) {Navigation state\\and covariance};
-  \end{tikzpicture}
+  \end{tikzpicture}}%
   \end{center}
 
 \end{block}
 
-\begin{block}{System \& Method}
+\begin{block}{IPP Architecture}
 
   \textbf{Navigation — Error-State Kalman Filter (ESKF)}
 
@@ -193,6 +196,33 @@ Department of Engineering Cybernetics, NTNU}
 
 \end{block}
 
+\begin{block}{Andøya Test Flight}
+  \begin{minipage}[t]{0.38\columnwidth}
+    \vspace{0pt}
+    \includegraphics[width=\linewidth]{figures/poster_ipp_track.pdf}
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.58\columnwidth}
+    \vspace{0pt}
+    Andøya student-rocket flight (Mongoose~98), 90\,s flight to
+    impact. The map shows the rocket ground track (red) and the IPP
+    predictions coloured by flight time, with purple indicating early
+    predictions and yellow indicating late predictions converging toward impact.
+
+    \vspace{0.5em}
+    The onboard sensor suite comprised an IMU, GNSS, and
+    magnetometer. Barometer data was not available on this flight.
+    Wind profiles were provided by a weather balloon launched
+    30--45\,min before launch. The rocket impacted approximately
+    6.3\,km from the launch pad.
+
+    \vspace{0.5em}
+    Outlier predictions during the burn phase stem from initial yaw uncertainty
+    and attitude instability caused by gyroscope saturation under high spin,
+    possibly compounded by thrust model errors. Once ballistic,
+    predictions converge toward the actual impact, marked by the crosshair.
+  \end{minipage}
+\end{block}
+
 \end{column}
 
 %----------------------------------------------------------------------------------------
@@ -202,23 +232,15 @@ Department of Engineering Cybernetics, NTNU}
 
 \begin{column}{.45\textwidth}
 
-\begin{block}{Results: Real-Flight Validation}
-  Andøya student-rocket flight (Mongoose~98), full ${\sim}80$\,s ballistic descent to
-  splashdown. The Cartesian IPP filter is run on real onboard sensor data alongside a
-  simulation reference with clean sensor inputs as a baseline.
-
-  \vspace{0.4em}
+\begin{block}{IPP Prediction Error}
   \begin{center}
     \includegraphics[width=0.97\columnwidth]{figures/poster_ipp_error.pdf}
   \end{center}
-
   \vspace{0.3em}
-  During the burn phase ($t \lesssim 10$\,s) the prediction is corrupted by a stack of
-  upstream effects, including gyroscope and accelerometer saturation under high spin,
-  vibration, GNSS error, and thrust/mass mismodelling. After burn-out the real-flight
-  error drops sharply and decays through to impact, settling above the simulation
-  reference baseline. Errors are reported against the GNSS reference rather than
-  absolute ground truth.
+  During the burn phase ($t \lesssim 10$\,s) the prediction is corrupted by
+  gyroscope and accelerometer saturation under high spin, vibration, GNSS error,
+  and thrust/mass mismodelling. After burnout the error drops sharply and decays
+  through to impact. Errors are reported against the GNSS reference.
 \end{block}
 
 
@@ -245,7 +267,7 @@ Department of Engineering Cybernetics, NTNU}
     \item \textbf{Scaling to orbital recovery.} The ESKF and Cartesian architecture
           requires only higher-grade inertial sensors and a longer propagation
           horizon to support autonomous ship pre-positioning before first-stage
-          splashdown.
+          recovery.
   \end{itemize}
 \end{block}
 

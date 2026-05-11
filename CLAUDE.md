@@ -50,6 +50,14 @@ Single-file: `poster.tex`. Compiled with **XeLaTeX** (first line `% !TEX program
 | `sim_vs_real_ipp_combined.pdf` | 0.90 col | Real-flight vs. simulation IPP error, 3 panels (horizontal, along-track, cross-track) |
 | `poster_spin_limit.pdf` | 0.62 col | Magnetometer oscillations revealing ~113 rad/s peak spin rate |
 
+## Framing
+
+This poster presents the system and what it achieves — not a comparison or improvement story. Do not frame results as "X% improvement over baseline" or "reduced from A to B". Present what the system produces: actual error numbers, actual filter performance, actual flight behaviour.
+
+## Writing Style
+
+- Do not use dashes, colons, or semicolons to bind sentences together. Write separate, complete sentences instead.
+
 ## Build & Review Workflow
 
 After every edit to `poster.tex`:
