@@ -3,7 +3,7 @@
 % PACKAGES
 %----------------------------------------------------------------------------------------
 \documentclass[hyperref={pdfpagelabels=false}]{beamer}
-\usepackage[orientation=portrait,size=a0,scale=1.15]{beamerposter}
+\usepackage[orientation=portrait,size=a0,scale=1.4]{beamerposter}
 \usepackage[font={small}]{caption}
 \usepackage[english]{babel}
 \usepackage{amsmath, booktabs, fontspec, graphicx, xcolor, tikz, tabularx}
@@ -76,7 +76,7 @@ Department of Engineering Cybernetics, NTNU}
 
 \addtobeamertemplate{block end}{}{\vspace*{1ex}}
 
-\begin{frame}[fragile]
+\begin{frame}
 \begin{columns}[t]
 
 %----------------------------------------------------------------------------------------
@@ -88,56 +88,46 @@ Department of Engineering Cybernetics, NTNU}
 
 \begin{block}{Research Objective}
   Rocket launch rates are rising, making sustainable recovery of payloads and first
-  stages increasingly important. Autonomous recovery vehicles (ARVs) address this by
-  reducing cost, human exposure, and environmental footprint. This requires solving
-  two coupled problems. The rocket's landing location must be predicted in real time
-  so the ARV can be guided to that location. 
-
-  \vspace{0.5em}
-  \textbf{Impact point prediction (IPP)} is the real-time estimate of the rocket's
-  landing location and uncertainty, updated continuously from onboard sensor data.
-  An ARV steers to this estimate.
+  stages increasingly important. Autonomous surface vehicles (ASVs) can reduce cost,
+  human exposure, and environmental footprint, but require real-time prediction of
+  the rocket landing location. This work focuses on impact point prediction (IPP),
+  which continuously estimates the landing location and uncertainty from onboard
+  sensor data. The ASV uses this estimate for recovery guidance.
 
   \vspace{0.6em}
   \begin{center}
-  \scalebox{1.2}{%
+  \scalebox{1.04}{%
   \begin{tikzpicture}[
-    font=\small,
+    font=\normalsize,
     physbox/.style={rectangle, rounded corners=5pt, draw=darkgray, line width=1.2pt,
                     fill=white, align=center, text width=5.0cm, minimum height=3.0cm},
     algbox/.style={rectangle, rounded corners=5pt, draw=ntnublue, line width=1.6pt,
-                   fill=ntnublue!8, align=center, text width=3.0cm, minimum height=2.0cm},
+                   fill=ntnublue!8, align=center, text width=4.2cm, minimum height=2.0cm},
     ippbox/.style={algbox, draw=resultgreen, fill=resultgreen!8},
     arrow/.style={-{Latex[length=4mm, width=3mm]}, line width=1.3pt, draw=darkgray},
-    datatag/.style={font=\scriptsize, align=center, rounded corners=3pt,
-                    fill=darkgray!8, draw=darkgray!35, line width=0.5pt,
-                    inner xsep=5pt, inner ysep=3pt},
-    navtag/.style={datatag, fill=ntnublue!10, draw=ntnublue!40},
-    ipptag/.style={datatag, fill=resultgreen!10, draw=resultgreen!40}
+    flowlabel/.style={font=\small, align=center, fill=white,
+                      inner xsep=3pt, inner ysep=2pt}
   ]
-    % Softgray module background — drawn first so nodes render on top
+    % Softgray module background drawn first so nodes render on top
     \draw[rounded corners=8pt, draw=darkgray!50, line width=1.0pt, fill=softgray!60]
-      (-5.5cm, 3.6cm) rectangle (5.5cm, -3.6cm);
-    \node[font=\scriptsize\itshape, text=darkgray!70] at (0cm, 4.1cm)
-      {\textit{Onboard algorithm}};
+      (-7.6cm, 4.35cm) rectangle (5.9cm, -4.35cm);
+    \node[font=\normalsize, text=darkgray!70] at (-0.85cm, 4.9cm)
+      {Onboard algorithm};
 
-    % Algorithm nodes — spread apart to leave room for the nav state label between them
-    \node[algbox] (eskf) at (0cm,  2.2cm) {\textbf{ESKF}};
-    \node[ippbox] (ipp)  at (0cm, -2.2cm) {\textbf{IPP EKF}};
+    \node[algbox] (eskf) at (-0.85cm,  2.55cm) {ESKF};
+    \node[ippbox] (ipp)  at (-0.85cm, -2.55cm) {IPP EKF};
 
-    % Physical entities at mid-height (y=0)
-    \node[physbox] (rocket)  at (-12.5cm, 0) {\textbf{Rocket}};
-    \node[physbox] (vehicle) at ( 12.5cm, 0) {\textbf{ARV}};
+    \node[physbox] (rocket)  at (-13.5cm, 0cm) {Rocket};
+    \node[physbox] (vehicle) at ( 13.5cm, 0cm) {ASV};
 
-    % External arrows — straight horizontal at y=0
-    \draw[arrow] (rocket.east) -- (-5.5cm, 0)
-      node[midway, above=3pt, datatag] {sensor data};
-    \draw[arrow] (5.5cm, 0) -- (vehicle.west)
-      node[midway, above=3pt, ipptag] {impact point\\+ covariance};
+    \draw[arrow] (rocket.east) -- (-7.6cm, 0cm)
+      node[midway, above=5pt, flowlabel] {$\mathbf{z}$};
+    \draw[arrow] (5.9cm, 0cm) -- (vehicle.west)
+      node[midway, above=5pt, flowlabel] {$\mathbf{x}_i,\mathbf{P}_i$};
 
-    % Internal arrow — nav state label centred in the gap between the two blocks
     \draw[arrow] (eskf.south) -- (ipp.north);
-    \node[navtag, anchor=west] at (0.15cm, 0cm) {Navigation state\\and covariance};
+    \node[flowlabel, anchor=west] at (-0.5cm, 0cm)
+      {$\mathbf{x}_n,\mathbf{P}_n$};
   \end{tikzpicture}}%
   \end{center}
 
@@ -145,20 +135,12 @@ Department of Engineering Cybernetics, NTNU}
 
 \begin{block}{IPP Architecture}
 
-  \textbf{Navigation — Error-State Kalman Filter (ESKF)}
-
-  \vspace{0.3em}
-  The ESKF maintains a continuous estimate of position, velocity, attitude, and sensor
-  biases. IMU measurements propagate the state at high rate. GNSS, barometer, and
-  magnetometer measurements then correct it via the error-state injection scheme~[3].
-  The filter outputs a full state vector \textit{and covariance} that are passed directly
-  as the initial condition for the IPP filter.
+  \textbf{Navigation filter.} The ESKF estimates position, velocity, attitude, and
+  sensor biases from inertial propagation with GNSS, barometer, and magnetometer
+  aiding. Its state and covariance initialise the IPP filter.
 
   \vspace{0.8em}
-  \textbf{Impact Point Prediction — Cartesian EKF}
-
-  \vspace{0.3em}
-  The IPP filter propagates a Cartesian state
+  \textbf{Impact point prediction filter.} The IPP filter propagates a Cartesian state
   $\mathbf{x} = [\mathbf{p}^\top, \mathbf{v}^\top]^\top$ in NED coordinates forward
   until altitude reaches sea level:
 
@@ -169,58 +151,32 @@ Department of Engineering Cybernetics, NTNU}
     \dot{\mathbf{p}} = \mathbf{v}, \qquad
     \dot{\mathbf{v}} = \mathbf{g}
       - K_D\,\mathbf{v}_a
-      + \mathbf{R}(\hat{\mathbf{q}})\,\mathbf{T}_b, \qquad
+      + \mathbf{R}(\hat{\mathbf{q}})\,\mathbf{a}_{T,b}, \qquad
     K_D = \frac{\rho\, C_D\, A\,\|\mathbf{v}_a\|}{2m}
   \end{equation*}
   \end{minipage}
   \end{center}
 
   \vspace{0.2em}
-  $\mathbf{v}_a$ airspeed vector, $\rho$ air density, $C_D$ drag coefficient, $A$ reference area, $m$ mass.
-  $\mathbf{R}(\hat{\mathbf{q}})$ rotates the body-frame thrust $\mathbf{T}_b$ to NED using the ESKF attitude quaternion $\hat{\mathbf{q}}$.
-
-  \vspace{0.3em}
-  The equations are propagated forward until the predicted altitude reaches sea level,
-  yielding a predicted impact point and propagated uncertainty ellipse updated in real time.
-
-  \vspace{0.8em}
-  \begin{tabularx}{0.97\columnwidth}{>{\bfseries}l X}
-    \toprule
-    Component & Key design choice \\
-    \midrule
-    ESKF & Fuses GNSS, barometer, and magnetometer \\
-    IPP  & Forward propagation of position and velocity using EKF equations \\
-    Interface & IPP re-initialised from ESKF state and covariance at each GNSS update \\
-    \bottomrule
-  \end{tabularx}
+  $\mathbf{v}_a$ airspeed, $\rho$ air density, $C_D$ drag coefficient, $A$ reference area, $m$ mass.
+  $\mathbf{a}_{T,b}$ body-frame thrust acceleration, rotated to NED by $\mathbf{R}(\hat{\mathbf{q}})$.
 
 \end{block}
 
-\begin{block}{Andøya Test Flight}
-  \begin{minipage}[t]{0.38\columnwidth}
-    \vspace{0pt}
-    \includegraphics[width=\linewidth]{figures/poster_ipp_track.pdf}
-  \end{minipage}\hfill
-  \begin{minipage}[t]{0.58\columnwidth}
-    \vspace{0pt}
-    Andøya student-rocket flight (Mongoose~98), 90\,s flight to
-    impact. The map shows the rocket ground track (red) and the IPP
-    predictions coloured by flight time, with purple indicating early
-    predictions and yellow indicating late predictions converging toward impact.
-
-    \vspace{0.5em}
-    The onboard sensor suite comprised an IMU, GNSS, and
-    magnetometer. Barometer data was not available on this flight.
-    Wind profiles were provided by a weather balloon launched
-    30--45\,min before launch. The rocket impacted approximately
-    6.3\,km from the launch pad.
-
-    \vspace{0.5em}
-    Outlier predictions during the burn phase stem from initial yaw uncertainty
-    and attitude instability caused by gyroscope saturation under high spin,
-    possibly compounded by thrust model errors. Once ballistic,
-    predictions converge toward the actual impact, marked by the crosshair.
-  \end{minipage}
+\begin{block}{Simulation Performance}
+  The Cartesian IPP architecture was evaluated on four simulated trajectories using
+  100 Monte Carlo wind realizations per trajectory. The vehicle model was kept close
+  to truth, giving a controlled reference without the hardware saturation seen in
+  flight data.
+  
+  \vspace{0.5em}
+  The model achieved 45.3\,m mean RMSE across the four trajectories. The plots show
+  median error and 3-sigma covariance.
+  
+  \vspace{0.5em}
+  \begin{center}
+    \includegraphics[width=0.97\columnwidth]{figures/poster_sim_1x3.pdf}
+  \end{center}
 \end{block}
 
 \end{column}
@@ -232,56 +188,69 @@ Department of Engineering Cybernetics, NTNU}
 
 \begin{column}{.45\textwidth}
 
-\begin{block}{IPP Prediction Error}
+\begin{block}{And{\o}ya Test Flight}
+  \begin{minipage}[t]{0.38\columnwidth}
+    \vspace{0pt}
+    \includegraphics[width=\linewidth]{figures/poster_ipp_track.pdf}
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.58\columnwidth}
+    \vspace{0pt}
+    And{\o}ya student rocket flight. The map shows the rocket ground track
+    in red, IPP predictions coloured by flight time, and the actual impact
+    marked by the crosshair.
+
+    \vspace{0.5em}
+    Wind profiles came from a weather balloon launched 30--45\,min before
+    launch.
+    Burn phase outliers are mainly explained by initial yaw uncertainty and attitude
+    instability caused by gyroscope saturation under high spin, possibly
+    compounded by thrust model errors. After burnout, the IPP error remains
+    small through the ballistic phase.
+  \end{minipage}
+\end{block}
+
+\begin{block}{Real Flight IPP Error}
   \begin{center}
     \includegraphics[width=0.97\columnwidth]{figures/poster_ipp_error.pdf}
   \end{center}
   \vspace{0.3em}
-  During the burn phase ($t \lesssim 10$\,s) the prediction is corrupted by
-  gyroscope and accelerometer saturation under high spin, vibration, GNSS error,
-  and thrust/mass mismodelling. After burnout the error drops sharply and decays
-  through to impact. Errors are reported against the GNSS reference.
+  The plot shows the real-flight IPP error. Burn-phase errors are dominated by
+  sensor saturation and thrust uncertainty. After burnout, the error drops sharply.
 \end{block}
 
 
-\begin{block}{Challenges \& Outlook}
+\begin{block}{Discussion}
   \begin{minipage}[t]{0.50\columnwidth}
     \vspace{0pt}
-    \includegraphics[width=\linewidth]{figures/poster_spin_rate.pdf}
+    \raggedright
+    Simulation results show accurate IPP under controlled model conditions, but
+    real flight exposes practical limits. The dominant issue was gyroscope
+    saturation during burn, visible as the 40\,rad/s ceiling in the spin-rate
+    plot.
   \end{minipage}\hfill
   \begin{minipage}[t]{0.46\columnwidth}
     \vspace{0pt}
-    \textbf{Spin saturation.} The gyroscope saturates at $\pm 40$\,rad/s through burn.
-    The magnetometer recovers the true ${\approx}113$\,rad/s peak. Mitigations include
-    a higher-range IMU, IMU placement closer to the spin axis, and a lower-spin rocket.
+    \includegraphics[width=\linewidth]{figures/poster_spin_rate.pdf}
   \end{minipage}
 
   \vspace{0.5em}
-  \begin{itemize}
-    \item \textbf{Wind and drag uncertainty.} Real-time wind estimation and
-          in-flight drag identification remain open problems for operational use.
-    \item \textbf{Known mass and thrust.} The IPP model treats vehicle mass and thrust
-          as deterministic inputs. Propellant burn-off and thrust variations introduce
-          unmodelled uncertainty that limits pre-burnout accuracy. In-flight parameter
-          estimation would address this.
-    \item \textbf{Scaling to orbital recovery.} The ESKF and Cartesian architecture
-          requires only higher-grade inertial sensors and a longer propagation
-          horizon to support autonomous ship pre-positioning before first-stage
-          recovery.
-  \end{itemize}
+  Beyond sensor saturation, uncertainty in wind, drag, mass, and thrust
+  parameters limits prediction accuracy. Better wind estimation, drag
+  identification, in-flight parameter estimation, and uncertainty quantification
+  are key next steps.
 \end{block}
 
 \begin{block}{References}
-  \small
-  \begin{tabular}{@{}r@{\hspace{0.5em}}p{0.87\columnwidth}@{}}
+  \footnotesize
+  \begin{tabular}{@{}r@{\hspace{0.5em}}p{0.88\columnwidth}@{}}
     {[1]} & K.~Gryte et al.
-            \textit{Recovery of Rocket Payloads and First Stages Using Unmanned Vehicles.}
-            IEEE Aerospace Conference, 2025. \\[0.4em]
+            Recovery of Rocket Payloads and First Stages Using Unmanned Vehicles.
+            IEEE Aerospace Conference, 2025. \\[0.1em]
     {[2]} & A.~Meta.
-            \textit{Impact Point Prediction of High-Power Rockets and Sounding Rockets.}
-            M.Sc.\ Thesis, NTNU, 2025. \\[0.4em]
+            Impact Point Prediction of High-Power Rockets and Sounding Rockets.
+            M.Sc.\ Thesis, NTNU, 2025. \\[0.1em]
     {[3]} & E.~K.~Jensen.
-            \textit{Rocket science: Catch space rockets using unmanned vehicles.}
+            Rocket science: Catch space rockets using unmanned vehicles.
             M.Sc.\ Thesis, NTNU, 2026. \\
   \end{tabular}
 \end{block}

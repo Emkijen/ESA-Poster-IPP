@@ -1,9 +1,25 @@
 # To-Do
 
+## Poster layout (from review 2026-05-17)
+
+Suggested order of attack: title-gap `\keymetric` fix first (biggest visual win, also
+helps column balance), then column balance, then the two figure regenerations (those
+need the Rocket-Catch analysis scripts).
+
+- [ ] **Fill the empty band below the title.** Large white gap between the affiliation line and the first blocks makes the title float. The template's `\keymetric` command is defined but unused — add 2-3 metric boxes here (e.g. "45.3 m sim RMSE", "real-flight validated", "113 rad/s peak spin"). Highest-impact quick win.
+- [ ] **Balance the columns.** Left column ends short at the simulation plots while the right column runs to References. Options: move References to the left, add an Acknowledgements block, or enlarge the diagram/sim figure.
+- [ ] **Clean up the simulation plots (`poster_sim_1x3.pdf`).** Four overlapping translucent 3-sigma bands wash into an indistinct tan blur, and bands extend well past the y-axis range. Plot fewer bands, use a single aggregate envelope, or clip the y-axis so median lines stay readable at poster distance.
+- [ ] **Improve the Andøya map (`poster_ipp_track.pdf`).** At 0.38 column width the purple IPP-prediction dots are hard to read against dark satellite imagery. Use a brighter marker or a larger/tighter crop.
+
 ## Poster content
 
+- [ ] **Trim repeated sensor-saturation mentions.** The saturation point appears in the Andøya block, Real Flight IPP Error block, Discussion, and Simulation Performance. Keep the Discussion as the definitive statement and trim the others.
 - [x] **Add contact information** — added `emilkj@stud.ntnu.no` and `kristoffer.gryte@ntnu.no` under the affiliation line.
-- [ ] **Fix navigation figure/text mismatch** — `poster_real_flight_rmse.pdf` shows *GNSS position only* vs *GNSS position + velocity* (the joint update), but the ESKF block text says barometer and magnetometer aiding drove the 42.36 → 8.20 m improvement. Either swap the figure for the correct baro+mag comparison (`nav_*_gnss_vs_gnss_barometer_magnetometer_comparison.pdf` from Rocket-Catch) or correct the text to match the figure.
+- [x] **Fix navigation figure/text mismatch** — resolved by removing the stale navigation-comparison figure from the current poster layout.
+
+## Project housekeeping
+
+- [ ] **Update the figure table in `CLAUDE.md`.** It lists `poster_real_flight_rmse.pdf`, `sim_vs_real_ipp_combined.pdf`, `poster_spin_limit.pdf`, but the poster now uses `poster_sim_1x3.pdf`, `poster_ipp_track.pdf`, `poster_ipp_error.pdf`, `poster_spin_rate.pdf`.
 
 ## Symposium logistics (ESA deadlines)
 
@@ -17,4 +33,4 @@
 
 ## Poster figures
 
-- [ ] **Render the geographic IPP track plot.** Data is already staged at `data/ipp_track.csv` and `data/ipp_track_meta.csv`. Run `pip install contextily` once, then `python scripts/plot_poster_ipp_track.py` produces `figures/poster_ipp_track.pdf` (rocket ground track + per-step predicted impacts coloured by flight time + actual splashdown bullseye, all on Esri satellite tiles). Then decide layout — likely replaces the 1×3 error figure in the Real-Flight Validation block.
+- [x] **Render the geographic IPP track plot.** `figures/poster_ipp_track.pdf` is rendered and used in the Andøya Test Flight block.

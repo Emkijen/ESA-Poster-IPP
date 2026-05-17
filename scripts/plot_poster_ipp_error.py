@@ -5,8 +5,7 @@ convergence is visible without the burn-phase spike compressing the scale.
 The burn-phase window is shaded and any real-flight peak that exceeds Y_CAP
 is annotated with an off-scale arrow.
 
-Inputs:  ../data/ipp_sim.csv
-         ../data/ipp_real.csv
+Inputs:  ../data/ipp_real.csv
 
 Output:  ../figures/poster_ipp_error.pdf
 
@@ -16,13 +15,13 @@ Run from this directory:
 
 from pathlib import Path
 
+import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
 
 import poster_style as ps
 
 ROOT = Path(__file__).resolve().parents[1]
-SIM_CSV = ROOT / "data" / "ipp_sim.csv"
 REAL_CSV = ROOT / "data" / "ipp_real.csv"
 OUT_PDF = ROOT / "figures" / "poster_ipp_error.pdf"
 
@@ -43,11 +42,10 @@ def load(csv_path):
     }
 
 
-def _draw_traces(ax, sim, real, key_e, key_sig):
-    for d, color in [(real, ps.WARN_RED), (sim, ps.NTNU_BLUE)]:
-        ax.fill_between(d["t"], 0, 3 * d[key_sig], color=color, alpha=0.18, linewidth=0)
+def _draw_traces(ax, real, key_e, key_sig):
+    ax.fill_between(real["t"], 0, 3 * real[key_sig],
+                    color="grey", alpha=0.35, linewidth=0)
     ax.plot(real["t"], real[key_e], color=ps.WARN_RED, lw=ps.LW_PRIMARY, label="Real flight")
-    ax.plot(sim["t"], sim[key_e], color=ps.NTNU_BLUE, lw=ps.LW_PRIMARY, label="Simulation reference")
 
 
 def _annotate_peak(ax, real, key_e, ymax):
@@ -70,7 +68,6 @@ def _annotate_peak(ax, real, key_e, ymax):
 def main():
     ps.apply()
 
-    sim = load(SIM_CSV)
     real = load(REAL_CSV)
 
     fig, axes = plt.subplots(
@@ -85,11 +82,11 @@ def main():
         (axes[2], "e_cross", "sigma_cross", "Cross-track"),
     ]
 
-    t_max = max(sim["t"][-1], real["t"][-1])
+    t_max = real["t"][-1]
 
     for ax, ke, ks, title in panels:
         ax.axvspan(0, BURN_END, color=ps.WARN_RED, alpha=0.10, linewidth=0)
-        _draw_traces(ax, sim, real, ke, ks)
+        _draw_traces(ax, real, ke, ks)
         ax.set_xlim(0, t_max)
         ax.set_ylim(0, Y_CAP)
         ax.set_title(title, fontsize=ps.SIZE_LABEL, pad=4)
@@ -100,8 +97,9 @@ def main():
     axes[0].set_ylabel("Error [m]")
 
     # Single legend above the row of panels
+    band_patch = mpatches.Patch(color='grey', alpha=0.35, label='3-sigma covariance')
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels,
+    fig.legend(handles + [band_patch], labels + [band_patch.get_label()],
                loc="upper center", ncol=2,
                bbox_to_anchor=(0.5, 1.02),
                frameon=False, fontsize=ps.SIZE_LEGEND)
@@ -111,11 +109,10 @@ def main():
     fig.savefig(OUT_PDF)
     print(f"saved {OUT_PDF}")
 
-    for label, d in [("Real", real), ("Sim", sim)]:
-        for k in ("e_h", "e_along", "e_cross"):
-            e = d[k]
-            print(f"  {label:<5s} {k:8s}  median={np.median(e):6.1f}  "
-                  f"max={e.max():7.1f}  RMS={np.sqrt((e ** 2).mean()):6.1f}")
+    for k in ("e_h", "e_along", "e_cross"):
+        e = real[k]
+        print(f"  Real  {k:8s}  median={np.median(e):6.1f}  "
+              f"max={e.max():7.1f}  RMS={np.sqrt((e ** 2).mean()):6.1f}")
 
 
 if __name__ == "__main__":
