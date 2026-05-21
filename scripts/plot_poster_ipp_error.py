@@ -72,7 +72,7 @@ def main():
 
     fig, axes = plt.subplots(
         1, 3,
-        figsize=(ps.COLUMN_WIDTH_IN, 4.0),
+        figsize=(ps.COLUMN_WIDTH_IN, 6.0),
         sharex=True, sharey=True,
     )
 
@@ -85,16 +85,15 @@ def main():
     t_max = real["t"][-1]
 
     for ax, ke, ks, title in panels:
-        ax.axvspan(0, BURN_END, color=ps.WARN_RED, alpha=0.10, linewidth=0)
         _draw_traces(ax, real, ke, ks)
         ax.set_xlim(0, t_max)
         ax.set_ylim(0, Y_CAP)
         ax.set_title(title, fontsize=ps.SIZE_LABEL, pad=4)
-        ax.set_xlabel("Time [s]")
         ax.grid(True)
         _annotate_peak(ax, real, ke, Y_CAP)
 
     axes[0].set_ylabel("Error [m]")
+    fig.supxlabel("Time [s]", fontsize=ps.SIZE_LABEL)
 
     # Single legend above the row of panels
     band_patch = mpatches.Patch(color='grey', alpha=0.35, label='3-sigma covariance')
