@@ -93,7 +93,7 @@ Department of Engineering Cybernetics, NTNU}
   Rocket launch rates are rising, making sustainable recovery of payloads and first
   stages increasingly important. Autonomous surface vehicles (ASVs) can reduce cost,
   human exposure, and environmental impact, but require real-time prediction of
-  the rocket landing location. This work focuses on impact point prediction (IPP),
+  the rocket landing location. Therefore, this work focuses on impact point prediction (IPP),
   which continuously estimates the landing location and uncertainty from onboard
   sensor data. The ASV uses this estimate for recovery guidance.
 
@@ -182,8 +182,8 @@ Department of Engineering Cybernetics, NTNU}
 \begin{block}{Simulation Performance}
   The Cartesian IPP architecture was evaluated on four simulated trajectories using
   100 Monte Carlo wind realizations per trajectory. The rocket model was
-  implemented with RocketPy and provides a controlled simulation reference
-  without the hardware saturation seen in flight data.
+  implemented with RocketPy, providing a controlled reference for evaluating
+  the IPP under known model conditions.
   
   \vspace{0.5em}
   The IPP achieved 45.3\,m mean RMSE across the four trajectories. The plots show
@@ -220,7 +220,7 @@ Department of Engineering Cybernetics, NTNU}
     launch.
     Burn phase outliers are mainly explained by initial yaw uncertainty and attitude
     instability from gyroscope saturation under high spin. Thrust model errors may
-    compound this. After burnout, the IPP error remains small through the ballistic
+    compound this. After burnout, the IPP error remains lower through the ballistic
     phase.
   \end{minipage}
 \end{block}
@@ -250,11 +250,13 @@ Department of Engineering Cybernetics, NTNU}
   \end{minipage}
 
   \vspace{0.5em}
-  The high spin rate is a result of the rocket's spin stabilization, which
-  active stabilization would avoid. Mounting the IMU closer to the spin axis
-  or using a higher-range gyroscope would reduce saturation. Better wind
-  estimation, drag identification, parameter estimation, and uncertainty
-  quantification are key next steps.
+  This saturation is driven by the rocket's spin stabilization. Larger rockets
+  commonly use active stabilization, avoiding this spin rate issue. Mounting the
+  IMU closer to the spin axis
+  or using a higher range gyroscope would reduce saturation. Beyond this
+  hardware issue, better wind estimation, drag identification, parameter
+  estimation, and uncertainty quantification would improve prediction accuracy
+  and covariance bounds.
 \end{block}
 
 \definecolor{ntnublue}{RGB}{1,80,159}
